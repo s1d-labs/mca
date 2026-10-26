@@ -21,7 +21,7 @@ CHUNK = 1000                 # rows per queue item: 100 requests with the sample
 # OGD resource ids (the UUID in the resource's API tab on data.gov.in), by a short name used in queue keys and file paths.
 # One entry for the all-India "RoC-wise Company Master Data" resource, or one per state if you use the state-wise resources.
 RESOURCES = {
-    "roc-wise": "",
+    "roc-wise": "9ef84268-d588-465a-a308-a864a43d0070",
 }
 
 
