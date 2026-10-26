@@ -5,6 +5,35 @@ scrape-hub (https://scrape.s1d.me). The hub is generic: it hands out queue items
 requests. Everything about this family's data lives here. Below is the technical reference the runner and the hub work with; the same
 text is on home.s1d.me → Docs → Scraper guide (Part 2), and on team boxes at /usr/local/share/team-docs/13-scraper-guide.md.
 
+## This family: `mca`
+
+- Source: MCA company master data on data.gov.in, read through the OGD API (`https://api.data.gov.in/resource/<uuid>?api-key=…
+  &format=json&offset=…&limit=…`, answer `{"total", "count", "field", "records": [...]}`). One project, `mca-companies`.
+- `family.py`: `RESOURCES` maps a short name to an OGD resource UUID (one all-India RoC-wise resource, or one per state).
+  `setup_family.py` asks the API for each resource's `total` and seeds one queue item per `CHUNK` rows (`<name>/<offset>`);
+  it refuses to run while `RESOURCES` is empty. The API key is data.gov.in's public sample key (10 rows per request, `PAGE`); the repo
+  is public, so a personal key can't go in `env`.
+- `crawl.py`: an item pages through its chunk, uploads the chunk's raw rows to `rows/<name>/<offset>.json.gz`, and stores one
+  record per company with the CIN as id. `parse()` maps columns by normalised name (`COLUMNS`, several spellings per field), so a
+  new column spelling means adding it there. State code, NIC code, year and ownership are also taken from the CIN
+  (`state_code`, `cin_nic_code`, …), whatever the columns are called. Unmapped columns go to `other`; e-mail/phone columns are dropped.
+- data.gov.in was not reachable from the team box (api.data.gov.in refused connections; www behind Akamai answered 503), so
+  `tests/pages/ogd-synthetic.json` is synthetic. Save a real answer and test against it once the API can be reached.
+- No `python` on the box: use `python3 -m venv .venv` and `.venv/bin/python` (`.venv/` is ignored).
+
+### Commands
+
+```bash
+pip install -r requirements.txt pytest "scrape-hub-client @ git+https://github.com/s1d-labs/runner@main#subdirectory=sdk"
+python -m pytest tests -q                                   # parsing tests (no network)
+python -m pytest tests/test_parse.py::test_an_error_answer_gives_nothing   # one test
+python crawl.py --local <resource uuid> [offset]            # one API page, no hub: records to stdout, total/columns/counters to stderr
+scrape-check --items 2                                      # what CI runs: setup + task against a local stand-in hub
+```
+
+Applying `family.py` to the real hub only happens through the **setup** workflow (GitHub OIDC); `setup_family.py` can't
+authenticate when run from the box.
+
 ## Working here
 
 - `family.py` holds the projects, targets, env, queue items and health checks; `scrape.json` the setup steps and tasks; the task
