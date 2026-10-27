@@ -17,8 +17,13 @@ text is on home.s1d.me → Docs → Scraper guide (Part 2), and on team boxes at
   record per company with the CIN as id. `parse()` maps columns by normalised name (`COLUMNS`, several spellings per field), so a
   new column spelling means adding it there. State code, NIC code, year and ownership are also taken from the CIN
   (`state_code`, `cin_nic_code`, …), whatever the columns are called. Unmapped columns go to `other`; e-mail/phone columns are dropped.
-- data.gov.in was not reachable from the team box (api.data.gov.in refused connections; www behind Akamai answered 503), so
-  `tests/pages/ogd-synthetic.json` is synthetic. Save a real answer and test against it once the API can be reached.
+- data.gov.in refuses connections from the team box and from GitHub runners; it answers from Indian networks (checked from an
+  Indian VPS, 2026-10-27). So the pool can't run this, and scrape-check in CI fails at setup's row-count request.
+- The resource (`4dbe5667-…`, 3,738,721 rows, updated 2026-10-13) has columns `CIN, CompanyName, CompanyROCcode, CompanyCategory,
+  CompanySubCategory, CompanyClass, AuthorizedCapital, PaidupCapital, CompanyRegistrationdate_date, Registered_Office_Address,
+  Listingstatus, CompanyStatus, CompanyStateCode` (lower-case state name), `CompanyIndian/Foreign Company, nic_code` (often "NA";
+  `cin_nic_code` from the CIN is the reliable one), `CompanyIndustrialClassification` (activity description, not a code).
+  `tests/pages/ogd-roc-wise-0.json` is a real one-row answer. The shared sample key answered 429 from India; a personal key worked.
 - No `python` on the box: use `python3 -m venv .venv` and `.venv/bin/python` (`.venv/` is ignored).
 
 ### Commands

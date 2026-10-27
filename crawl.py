@@ -39,8 +39,9 @@ COLUMNS = {
     "address": ["registeredofficeaddress", "companyregaddress", "registeredaddress", "address"],
     "roc": ["registrarofcompanies", "companyroccode", "roccode", "roc"],
     "state": ["registeredstate", "companystatecode", "state"],
-    "nic_code": ["industrialclass", "companyindustrialclassification", "niccode", "companyindustrialclass"],
-    "activity": ["principalbusinessactivityaspercin", "principalbusinessactivity", "activitydescription"],
+    "listing_status": ["listingstatus"],
+    "nic_code": ["niccode", "industrialclass"],
+    "activity": ["companyindustrialclassification", "principalbusinessactivityaspercin", "principalbusinessactivity"],
 }
 DROP = re.compile(r"email|phone|mobile")        # personal contact data: not kept even in `other`
 

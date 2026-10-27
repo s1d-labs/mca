@@ -1,0 +1,40 @@
+{
+  "_note": "Real answer from api.data.gov.in/resource/4dbe5667-7b6b-41d7-82af-211562424d9a?format=json&limit=1 (2026-10-27), trimmed to the data keys",
+  "status": "ok",
+  "message": "Resource lists",
+  "title": "Registrars of Companies (RoC)-wise Company Master Data",
+  "total": 3738721,
+  "count": 1,
+  "limit": 1,
+  "offset": 0,
+  "field": [
+    {"id": "CIN", "name": "CIN"}, {"id": "CompanyName", "name": "CompanyName"}, {"id": "CompanyROCcode", "name": "CompanyROCcode"},
+    {"id": "CompanyCategory", "name": "CompanyCategory"}, {"id": "CompanySubCategory", "name": "CompanySubCategory"},
+    {"id": "CompanyClass", "name": "CompanyClass"}, {"id": "AuthorizedCapital", "name": "AuthorizedCapital"},
+    {"id": "PaidupCapital", "name": "PaidupCapital"}, {"id": "CompanyRegistrationdate_date", "name": "CompanyRegistrationdate_date"},
+    {"id": "Registered_Office_Address", "name": "Registered_Office_Address"}, {"id": "Listingstatus", "name": "Listingstatus"},
+    {"id": "CompanyStatus", "name": "CompanyStatus"}, {"id": "CompanyStateCode", "name": "CompanyStateCode"},
+    {"id": "CompanyIndian/Foreign Company", "name": "CompanyIndian/Foreign Company"}, {"id": "nic_code", "name": "nic_code"},
+    {"id": "CompanyIndustrialClassification", "name": "CompanyIndustrialClassification"}
+  ],
+  "records": [
+    {
+      "CIN": "U27900GJ2025PTC166696",
+      "CompanyName": "EMSGLOB TECHNOLOGIES PRIVATE LIMITED",
+      "CompanyROCcode": "ROC Ahmedabad",
+      "CompanyCategory": "Company limited by shares",
+      "CompanySubCategory": "Non-government company",
+      "CompanyClass": "Private",
+      "AuthorizedCapital": "500000.00",
+      "PaidupCapital": "500000.00",
+      "CompanyRegistrationdate_date": "2025-08-26",
+      "Registered_Office_Address": "SHOP-G1  SHIVAM AVENUE,JUNA BAZAR  DHAVAT ROAD,Karjan,Vadodara,Gujarat,391240-India",
+      "Listingstatus": "Unlisted",
+      "CompanyStatus": "Active",
+      "CompanyStateCode": "gujarat",
+      "CompanyIndian/Foreign Company": "91",
+      "nic_code": "NA",
+      "CompanyIndustrialClassification": "Manufacturing (Machinery and Equipments)"
+    }
+  ]
+}
