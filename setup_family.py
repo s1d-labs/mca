@@ -23,7 +23,7 @@ for p in PROJECTS:
     else:
         items = getattr(family, p["items"])()
     register_project(p["name"], title=p["title"], unit_label=p["unit_label"], record_label=p["record_label"],
-                     expected_units=len(items), expected_records=sum(i["payload"].get("expected") or 0 for i in items) or None)
+                     expected_units=len(items), expected_records=sum(i["payload"].get("expected") or 0 for i in items))
     set_pool(p["name"], FAMILY, p["task"], target=p["target"], env=p["env"], probe=p["probe"], proxy=p.get("proxy"),
              pool=p.get("pool", True))
     print(p["name"], "queue:", seed_queue(p["name"], items))
