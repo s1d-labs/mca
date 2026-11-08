@@ -94,7 +94,7 @@ PROJECTS = [
 
 # F04 queue: f04_issues.json (python3 f04_issues.py on a team box). First pool run: only the pilot issues; set F04_ALL = True
 # after checking them on scrape.s1d.me.
-F04_ALL = False
+F04_ALL = True
 F04_PILOT = ["CG-DL-W-24102026-277391", "CG-MH-W-27122021-232123", "NA-188763", "NA-164490", "NA-156837"]
 
 
