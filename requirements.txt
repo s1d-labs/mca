@@ -1,1 +1,2 @@
 requests>=2.31
+pypdfium2>=4.30

@@ -18,13 +18,47 @@ text is on home.s1d.me → Docs → Scraper guide (Part 2), and on team boxes at
   new column spelling means adding it there. State code, NIC code, year and ownership are also taken from the CIN
   (`state_code`, `cin_nic_code`, …), whatever the columns are called. Unmapped columns go to `other`; e-mail/phone columns are dropped.
 - data.gov.in refuses connections from the team box and from GitHub runners; it answers from Indian networks (checked from an
-  Indian VPS, 2026-10-27). So the pool can't run this, and scrape-check in CI fails at setup's row-count request.
+  Indian VPS, 2026-10-27). The project uses `proxy="IN"` (`"proxy"` in `PROJECTS`), so pool workers go through the hub's Indian
+  proxies. Through a proxy the shared sample key still answers 429 (checked 2026-11-08), so pool runs need a personal key from
+  the hub's secret env (ask the hub owner); until then use `dump.py` with `OGD_KEY` via `myproxy`. The Setup workflow has no proxy: `total_rows` then falls back to `KNOWN_TOTALS` (update it after a full pull). The
+  `check` workflow also has no proxy, so its scrape-check fails at the first API page; run `myproxy run scrape-check --items 2`
+  from the box instead.
 - The resource (`4dbe5667-…`, 3,738,721 rows, updated 2026-10-13) has columns `CIN, CompanyName, CompanyROCcode, CompanyCategory,
   CompanySubCategory, CompanyClass, AuthorizedCapital, PaidupCapital, CompanyRegistrationdate_date, Registered_Office_Address,
   Listingstatus, CompanyStatus, CompanyStateCode` (lower-case state name), `CompanyIndian/Foreign Company, nic_code` (often "NA";
   `cin_nic_code` from the CIN is the reliable one), `CompanyIndustrialClassification` (activity description, not a code).
-  `tests/pages/ogd-roc-wise-0.json` is a real one-row answer. The shared sample key answered 429 from India; a personal key worked.
+  `tests/pages/ogd-roc-wise-0.json` is a real one-row answer. The shared sample key answered 429 from India; a personal key worked,
+  with `limit=1000` in about 1 s. Rows come grouped by state.
+- The API never answers requests with python-requests' default User-Agent (they hang until the timeout); send `crawl.UA` on every
+  request, including any new one.
+- `OGD_KEY` / `OGD_PAGE` in the shell override the sample key and the 10-row page for local runs (`family.py` reads them too, so
+  `OGD_KEY=… OGD_PAGE=1000 scrape-check --items 2` uses them). Never commit a personal key.
+- Full pull (2026-10-27): `dump.py` on an Indian VPS (one request at a time, `OGD_PAGE=1000`, ~4 h; now `myproxy run` from the box works too), then `dump.py --combine`
+  → 3,738,720 unique ids: 3,171,084 company CINs, 562,228 LLPINs (`AAA-1234`), 5,352 foreign companies (`F01234`), 56 malformed
+  CINs. LLPs and foreign companies have an empty `class` and no CIN-derived fields, so group by the `state` column (filled for every
+  row), not `state_code`.
+- LLP master (F02): the OGD API catalog has no separate LLP master resource (searched 2026-10-27; www.data.gov.in answers 403
+  even from India), so `dump.py --llp <dump dir> <out dir>` takes the LLPIN rows of the RoC-wise pages: 562,228 LLPs with
+  `llpin, name, status, registration_date, address, roc, state, activity` (capital/class/category are always empty for LLPs).
 - No `python` on the box: use `python3 -m venv .venv` and `.venv/bin/python` (`.venv/` is ignored).
+
+### F04: struck-off companies (`mca-strikeoff`, task `strikeoff`)
+
+- Source: ROC and C-PACE strike-off notices in the weekly Gazette of India, **Part III-Section 1** (egazette.gov.in, India-only:
+  `proxy="IN"`). Not mca.gov.in: it answers 403 to scripts (Akamai) and is not used.
+- Forms: STK-1/STK-5 (ROC proposes, s.248(1)), STK-6 (company applied, s.248(2)), STK-7 (struck off and dissolved, s.248(5), with
+  the date), LLP (rule 37 LLP Rules), S560(3)/S560(5) (1956 Act). `final` is true for STK-7, LLP final notices and S560(5).
+- One queue item = one issue. `f04_issues.json` is built on the box by `python3 f04_issues.py` from the land-acquisition
+  family's gazette list in scrape_hub (issues from 2013-06; older issues are scans without text and need OCR). Re-run it as
+  that backfill grows, commit, run Setup. `F04_ALL = False` seeds only `F04_PILOT`.
+- `egazette.py` downloads (direct `WriteReadData/<year>/<serial>.pdf` from 2014, the site's search and viewer before);
+  `stk.py` is the pure parser (pypdfium2 text, no system packages); uploads `pdf/<year>/<id>.pdf` and `text/<year>/<id>.txt.gz`.
+- Record id `<gazette_id>:<cin|llpin>:<form>` (1956 Act lists with only the company number: `<gazette_id>:<place>#<no>:<form>`,
+  `company_no` set, `cin` empty; join to F01 on the CIN's last 6 digits and the ROC's state). Fields: `cin, llpin, company_no,
+  company_name, form, final, roc, place, notice_no, notice_date, struck_off_date, page, gazette_id, issue_date, source_url, pdf_path`.
+- Each notice is printed in Hindi, then English; one record per company and form keeps the English row. Row dates in
+  MM/DD/YYYY columns are detected per notice (`stk.month_first`).
+- Try one issue: `myproxy run .venv/bin/python strikeoff.py --local <gazette_id>`; tests: `tests/test_stk.py`.
 
 ### Commands
 

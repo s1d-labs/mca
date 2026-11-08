@@ -8,6 +8,10 @@
     "crawl": [
       "python",
       "crawl.py"
+    ],
+    "strikeoff": [
+      "python",
+      "strikeoff.py"
     ]
   }
 }
