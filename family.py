@@ -81,7 +81,10 @@ PROJECTS = [
         "task": "strikeoff",
         "target": "egazette.gov.in",
         "env": {},
-        "probe": f"{FAMILY}:egazette.gov.in",
+        # no health check: egazette.gov.in answers its home page with a redirect into a session URL (302), and the hub counts only
+        # 200 as up, so a check on it always shows "down" and holds the work (land-acquisition runs without one for the same
+        # reason). "" clears a check set before. A failed download fails the item and the hub retries it later.
+        "probe": "",
         "proxy": "IN",                           # egazette.gov.in answers only Indian IPs
         "pool": True,
         "unit_label": "gazette issue", "record_label": "notice entry",
@@ -106,4 +109,3 @@ PROBES = [{"name": f"{FAMILY}:api.data.gov.in",
            "url": f"{resource_url(rid)}?api-key={API_KEY}&format=json&limit=1",
            "expect": "records"}
           for rid in list(RESOURCES.values())[:1]]
-PROBES.append({"name": f"{FAMILY}:egazette.gov.in", "url": "https://egazette.gov.in/", "expect": "gazette", "proxy": "IN"})
