@@ -139,7 +139,12 @@ def sheet_rows(ws):
                 if extra and isinstance(v, (int, float)):
                     v = round(v * 1000)
             rec[f] = v
+        if isinstance(rec.get("status"), (datetime, date)) and not as_date(rec.get("registration_date")):
+            rec["status"], rec["registration_date"] = rec.get("registration_date"), rec["status"]   # 2021-09: headers swapped
         rec["registration_date"] = as_date(rec.get("registration_date"))
+        for f, v in rec.items():                       # any other date cell: text, so the record is always valid JSON
+            if isinstance(v, (datetime, date)):
+                rec[f] = v.strftime("%Y-%m-%d")
         rec["activity_code"] = activity(rec.get("activity_code"))
         if isinstance(rec.get("activity_group"), str):
             rec["activity_group"] = re.sub(r"^Industrial Activity\s*-\s*", "", rec["activity_group"]) or None

@@ -75,3 +75,21 @@ def test_report_month_from_title():
     assert report_month("Indian Companies_Foreign Companies Register in June.xlsx", "04-07-2022") == "2022-06"
     assert report_month("Companies and LLPs registered in December' 2025", "01-01-2026") == "2025-12"
     assert report_month("Master Details of Companies/LLPs Registered -January, 2016", "05-02-2016") == "2016-01"
+
+
+def test_swapped_date_and_status_headers_and_records_are_json():
+    """2021-09: the foreign sheet's "Date" column holds the status and "Status" the date. Every record must be valid JSON."""
+    import io, json
+    from datetime import datetime
+    import openpyxl
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.append(["FCIN", "Company Name", "Date", "Status", "Activity", "Description", "Office Type", "Address", "Email", "State"])
+    ws.append(["F06684", "Integral S.A", "Active", datetime(2021, 9, 8), 74, "Business Services", "Project Office", "1, Jai Singh Road",
+               "x@example.com", "Delhi"])
+    buf = io.BytesIO()
+    wb.save(buf)
+    (rid, d), = incorp.parse(buf.getvalue(), {"report_month": "2021-09"})
+    assert d["registration_date"] == "2021-09-08" and d["status"] == "Active" and d["kind"] == "foreign"
+    for month in ("2016-06", "2018-10", "2019-03", "2022-06", "2023-10", "2026-10"):
+        json.dumps(recs(month))

@@ -62,7 +62,7 @@ text is on home.s1d.me → Docs → Scraper guide (Part 2), and on team boxes at
   each month after MCA adds the file (1st-5th), commit, run Setup. `F03_ALL = False` seeds only `F03_PILOT`.
 - `incorp.py` is the pure parser (openpyxl). The layout changed many times (2016-18: title rows, `S.No`, a foreign sheet whose id
   column is called CIN; 2018-10..2019-07: capital "In Thousand Rs." (multiplied by 1000), LLP codes `ZMCA_INDUS_ACT_93`; 2022: dates
-  `01-JUN-2022`; 2023-11 on: only CIN, class, name, date, type, activity code). Each sheet's header row is found by its id column
+  `01-JUN-2022`; 2021-09: the foreign sheet's Date and Status headers are swapped; 2023-11 on: only CIN, class, name, date, type, activity code). Each sheet's header row is found by its id column
   and columns are mapped by normalised name (`COLUMNS`); the kind comes from the id's shape (`F01234`, `AAA-1234`, else CIN).
   Unknown columns go to `other`; e-mail/phone columns are dropped.
 - Record id: the CIN / LLPIN / FCIN (checked: no id is in two months). Fields: `kind, id, cin, llpin, fcin, name,
@@ -70,7 +70,7 @@ text is on home.s1d.me → Docs → Scraper guide (Part 2), and on team boxes at
   activity_code, activity_group, activity_detail, address, obligation_of_contribution, partners, designated_partners, office_type`,
   CIN parts (`listing, cin_nic_code, state_code, cin_year, ownership`), `report_month, report_title, report_published, source,
   source_file, xlsx_path, xlsx_sha256, sheet, other`. Files: `xlsx/<YYYY>/<YYYY-MM>.xlsx`.
-- Full local run (2026-11-15): 88 files, 1,554,145 entities (1,181,725 companies, 371,913 LLPs, 507 foreign companies).
+- Full local run (2026-11-15): 88 files, 1,554,145 entities (1,181,525 companies, 371,913 LLPs, 707 foreign companies).
 - Try months without the hub: `.venv/bin/python incorporations.py --local 2026-10 [2019-03 ...] [--count] [--save DIR]`;
   tests: `tests/test_incorp.py` (real files cut to 4 rows per sheet, `tests/pages/f03-*.xlsx`).
 
