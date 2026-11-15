@@ -121,7 +121,7 @@ def strikeoff_items():
     return [{"key": i["gazette_id"], "payload": i} for i in issues]
 
 # F03 queue: f03_reports.json (python3 f03_reports.py on a team box, after MCA adds a month). F03_ALL = False seeds only F03_PILOT.
-F03_ALL = False
+F03_ALL = True
 F03_PILOT = ["2026-10", "2019-03", "2016-06"]
 
 
