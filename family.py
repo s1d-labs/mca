@@ -90,6 +90,22 @@ PROJECTS = [
         "unit_label": "gazette issue", "record_label": "notice entry",
         "items": "strikeoff_items",              # setup_family.py calls this function of family.py for the queue items
     },
+    {
+        # F03: companies, LLPs and foreign companies registered each month (MCA's monthly Excel files, www.mca.gov.in)
+        "name": f"{FAMILY}-incorporations",
+        "title": "MCA companies and LLPs registered each month (F03)",
+        "task": "incorporations",
+        "target": "www.mca.gov.in",
+        "env": {},
+        # no health check: Akamai answers the hub's plain HTTP check with 403, so it would always show "down" and hold the work.
+        # The task gets through with a browser TLS fingerprint (mcaportal.py); a failed download fails the item and it is retried.
+        "probe": "",
+        "proxy": "",                             # www.mca.gov.in answers outside India (checked from the box and from GitHub runners)
+        "max_workers": 1,                        # ~130 files of 1-3 MB: one worker is enough and keeps us gentle with the site
+        "pool": True,
+        "unit_label": "monthly file", "record_label": "company / LLP",
+        "items": "incorporation_items",
+    },
 ]
 
 # F04 queue: f04_issues.json (python3 f04_issues.py on a team box). First pool run: only the pilot issues; set F04_ALL = True
@@ -103,6 +119,18 @@ def strikeoff_items():
     if not F04_ALL:
         issues = [i for i in issues if i["gazette_id"] in F04_PILOT]
     return [{"key": i["gazette_id"], "payload": i} for i in issues]
+
+# F03 queue: f03_reports.json (python3 f03_reports.py on a team box, after MCA adds a month). F03_ALL = False seeds only F03_PILOT.
+F03_ALL = False
+F03_PILOT = ["2026-10", "2019-03", "2016-06"]
+
+
+def incorporation_items():
+    reports = json.loads((Path(__file__).parent / "f03_reports.json").read_text())
+    if not F03_ALL:
+        reports = [r for r in reports if r["month"] in F03_PILOT]
+    return [{"key": r["month"], "payload": r} for r in reports]
+
 
 # health checks the hub runs every minute; work for a project holds while its probe fails
 PROBES = [{"name": f"{FAMILY}:api.data.gov.in",

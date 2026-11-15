@@ -1,2 +1,4 @@
 requests>=2.31
 pypdfium2>=4.30
+curl_cffi>=0.7
+openpyxl>=3.1

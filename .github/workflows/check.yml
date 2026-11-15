@@ -27,6 +27,9 @@ jobs:
         run: python -m pytest tests -q
       - name: scrape-check (local stand-in hub, 2 real items)
         run: scrape-check --items 2
+      - name: scrape-check mca-incorporations (F03, www.mca.gov.in from a GitHub runner)
+        if: ${{ !cancelled() }}
+        run: scrape-check --project mca-incorporations --items 1
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:

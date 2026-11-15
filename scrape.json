@@ -1,6 +1,6 @@
 {
   "family": "mca",
-  "about": "MCA company LLPin F02 F01",
+  "about": "MCA company LLPin F02 F01 F03 F04",
   "setup": [
     "pip install -r requirements.txt"
   ],
@@ -12,6 +12,10 @@
     "strikeoff": [
       "python",
       "strikeoff.py"
+    ],
+    "incorporations": [
+      "python",
+      "incorporations.py"
     ]
   }
 }

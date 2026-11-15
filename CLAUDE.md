@@ -7,7 +7,8 @@ text is on home.s1d.me → Docs → Scraper guide (Part 2), and on team boxes at
 
 ## This family: `mca`
 
-- Source: MCA company master data on data.gov.in, read through the OGD API (`https://api.data.gov.in/resource/<uuid>?api-key=…
+- Projects: `mca-companies` (F01/F02, below), `mca-incorporations` (F03), `mca-strikeoff` (F04).
+- Source of `mca-companies`: MCA company master data on data.gov.in, read through the OGD API (`https://api.data.gov.in/resource/<uuid>?api-key=…
   &format=json&offset=…&limit=…`, answer `{"total", "count", "field", "records": [...]}`). One project, `mca-companies`.
 - `family.py`: `RESOURCES` maps a short name to an OGD resource UUID (one all-India RoC-wise resource, or one per state).
   `setup_family.py` asks the API for each resource's `total` and seeds one queue item per `CHUNK` rows (`<name>/<offset>`);
@@ -41,6 +42,37 @@ text is on home.s1d.me → Docs → Scraper guide (Part 2), and on team boxes at
   even from India), so `dump.py --llp <dump dir> <out dir>` takes the LLPIN rows of the RoC-wise pages: 562,228 LLPs with
   `llpin, name, status, registration_date, address, roc, state, activity` (capital/class/category are always empty for LLPs).
 - No `python` on the box: use `python3 -m venv .venv` and `.venv/bin/python` (`.venv/` is ignored).
+
+### F03: companies and LLPs registered each month (`mca-incorporations`, task `incorporations`)
+
+- Source: www.mca.gov.in → Data & Reports → Company/LLP Information → "Incorporated Or Closed During The Month", accordion
+  "Master Details of Companies Registered": one Excel file per month (DMS folder `403`), 2016-01 to now. Folder `402` is the
+  struck-off/closed list (not F03; one file there is titled "registered" but holds a strike-off report).
+- Akamai answers 403 to python-requests and curl from everywhere (box, Indian proxies, India servers). `mcaportal.py` uses
+  curl_cffi with `impersonate="chrome"` (a browser TLS/HTTP2 fingerprint), which gets 200 from the box in Germany, through the
+  proxies and from GitHub runners (the `check` workflow runs it). No proxy, no captcha, no login. No health check: the hub's plain
+  check would get 403 and hold the work. `max_workers=1`.
+- File list: `GET /bin/dms/searchDocList?page&perPage&sortField=Date&sortOrder=D&dialog={"folder":"403",...}` (JSON, the docs
+  are a JSON string in `documentDetails`). File: `GET /bin/dms/getdocument?mds=<docID>&type=download`.
+- 39 of the 127 listed files come back as 200 with an empty body every time (any session, any route; checked 2026-11-15:
+  2016-01, 2016-02, 2016-03, 2016-05, 2016-07, 2016-08, 2017-04, 2017-07, 2017-09, 2017-11, 2018-03, 2018-06, 2018-07, 2018-08, 2019-02, 2019-10, 2019-11, 2020-08, 2020-10, 2021-02, 2021-06, 2021-12, 2022-07, 2022-09, 2022-11, 2023-02, 2023-05, 2023-08, 2023-09, 2024-02, 2024-04, 2024-05, 2024-07, 2024-08, 2024-09, 2025-03, 2026-07, 2026-08, 2026-09). The task completes them as done with 0 records and an `empty_document` failure, so they are not
+  retried (re-seeding keeps done items; if MCA fixes a file, retry its item on scrape.s1d.me). The site has no file
+  for 2021-11, 2022-01, 2022-03. A month's file can hold a few rows of the month before (2023-03 has 165 from February).
+- One queue item = one month (`YYYY-MM`). `f03_reports.json` is built on the box by `.venv/bin/python f03_reports.py`; re-run it
+  each month after MCA adds the file (1st-5th), commit, run Setup. `F03_ALL = False` seeds only `F03_PILOT`.
+- `incorp.py` is the pure parser (openpyxl). The layout changed many times (2016-18: title rows, `S.No`, a foreign sheet whose id
+  column is called CIN; 2018-10..2019-07: capital "In Thousand Rs." (multiplied by 1000), LLP codes `ZMCA_INDUS_ACT_93`; 2022: dates
+  `01-JUN-2022`; 2023-11 on: only CIN, class, name, date, type, activity code). Each sheet's header row is found by its id column
+  and columns are mapped by normalised name (`COLUMNS`); the kind comes from the id's shape (`F01234`, `AAA-1234`, else CIN).
+  Unknown columns go to `other`; e-mail/phone columns are dropped.
+- Record id: the CIN / LLPIN / FCIN (checked: no id is in two months). Fields: `kind, id, cin, llpin, fcin, name,
+  registration_date, state, district, roc, status, category, class, company_type, authorized_capital, paidup_capital,
+  activity_code, activity_group, activity_detail, address, obligation_of_contribution, partners, designated_partners, office_type`,
+  CIN parts (`listing, cin_nic_code, state_code, cin_year, ownership`), `report_month, report_title, report_published, source,
+  source_file, xlsx_path, xlsx_sha256, sheet, other`. Files: `xlsx/<YYYY>/<YYYY-MM>.xlsx`.
+- Full local run (2026-11-15): 88 files, 1,554,145 entities (1,181,725 companies, 371,913 LLPs, 507 foreign companies).
+- Try months without the hub: `.venv/bin/python incorporations.py --local 2026-10 [2019-03 ...] [--count] [--save DIR]`;
+  tests: `tests/test_incorp.py` (real files cut to 4 rows per sheet, `tests/pages/f03-*.xlsx`).
 
 ### F04: struck-off companies (`mca-strikeoff`, task `strikeoff`)
 
